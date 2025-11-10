@@ -1,5 +1,6 @@
 import numpy as np
-from thermal_dicom import ThermalDicom, ThermalViewer
+from medthermal_dicom.core import MedThermalDicom
+from medthermal_dicom.visualization import ThermalViewer
 from scipy import io 
 import cv2 
 from PIL import Image 
@@ -17,7 +18,7 @@ temperature_data = io.loadmat(r"D:\Bharath\work\kidwai\345\2022001832\1\front.ma
 organization_uid = "1.2.826.0.1.3680043.8.276"  # Example UID - change this!
 
 # Create thermal DICOM
-thermal_dicom = ThermalDicom(organization_uid_prefix=organization_uid)
+thermal_dicom = MedThermalDicom(organization_uid_prefix=organization_uid)
 
 # Display UID information
 uid_info = thermal_dicom.get_organization_uid_info()

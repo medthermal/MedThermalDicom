@@ -12,14 +12,14 @@ from datetime import datetime
 import numpy as np
 from PIL import Image, ImageTk, ImageOps
 
-# Add the thermal_dicom package to the path
+# Add the medthermal_dicom package to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from thermal_dicom.core import ThermalDicom
-    from thermal_dicom.utils import get_common_organization_uids, validate_organization_uid
+    from medthermal_dicom.core import MedThermalDicom
+    from medthermal_dicom.utils import get_common_organization_uids, validate_organization_uid
 except ImportError as e:
-    print(f"Error importing thermal_dicom: {e}")
+    print(f"Error importing medthermal_dicom: {e}")
     sys.exit(1)
 
 
@@ -326,7 +326,7 @@ class DicomCreatorGUI:
                         is_temp_data = False
 
                     # Create thermal DICOM
-                    thermal_dicom = ThermalDicom(
+                    thermal_dicom = MedThermalDicom(
                         organization_uid_prefix=self.organization_uid.get() if self.organization_uid.get() else None
                     )
                     

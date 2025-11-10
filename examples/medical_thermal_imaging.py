@@ -13,7 +13,7 @@ This example demonstrates a complete clinical workflow for medical thermal imagi
 
 import sys
 import os
-# Add parent directory to Python path to allow importing thermal_dicom
+# Add parent directory to Python path to allow importing medthermal_dicom
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
@@ -22,8 +22,11 @@ from datetime import datetime, date
 import json
 from typing import Dict, List, Tuple, Optional
 
-from thermal_dicom import ThermalDicom, ThermalViewer, TemperatureConverter, ThermalCalibrator, ThermalMetadata
-from thermal_dicom.utils import ThermalImageProcessor, ThermalROIAnalyzer
+from medthermal_dicom.core import MedThermalDicom
+from medthermal_dicom.visualization import ThermalViewer
+from medthermal_dicom.utils import TemperatureConverter, ThermalCalibrator
+from medthermal_dicom.metadata import MedThermalMetadata
+from medthermal_dicom.utils import ThermalImageProcessor, ThermalROIAnalyzer
 
 
 class MedicalThermalWorkflow:
@@ -398,7 +401,7 @@ class MedicalThermalWorkflow:
         return thermal_data
     
     def create_clinical_thermal_dicom(self, study_id: str, thermal_data: np.ndarray, 
-                                    body_part: str, series_number: int = 1) -> ThermalDicom:
+                                    body_part: str, series_number: int = 1) -> MedThermalDicom:
         """
         Create clinical-grade thermal DICOM with comprehensive metadata.
         
@@ -415,14 +418,14 @@ class MedicalThermalWorkflow:
         patient = self.patients[study['patient_id']]
         
         # Create thermal DICOM
-        thermal_dicom = ThermalDicom()
+        thermal_dicom = MedThermalDicom()
         
         # Set thermal image data
         temp_range = (thermal_data.min(), thermal_data.max())
         thermal_dicom.set_thermal_image(thermal_data, thermal_data, temp_range)
         
         # Create comprehensive metadata
-        metadata = ThermalMetadata()
+        metadata = MedThermalMetadata()
         
         # Patient information
         metadata.set_patient_information(
@@ -521,7 +524,7 @@ class MedicalThermalWorkflow:
         
         return thermal_dicom
     
-    def perform_clinical_analysis(self, thermal_dicom: ThermalDicom, body_part: str) -> Dict:
+    def perform_clinical_analysis(self, thermal_dicom: MedThermalDicom, body_part: str) -> Dict:
         """
         Perform comprehensive clinical thermal analysis.
         

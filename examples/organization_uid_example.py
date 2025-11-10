@@ -11,11 +11,11 @@ This example demonstrates how to:
 
 import sys
 import os
-# Add parent directory to Python path to allow importing thermal_dicom
+# Add parent directory to Python path to allow importing medthermal_dicom
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
-from thermal_dicom import ThermalDicom
+from medthermal_dicom.core import MedThermalDicom
 
 
 def create_thermal_with_org_uid():
@@ -29,7 +29,7 @@ def create_thermal_with_org_uid():
     temperature_data = np.random.normal(37.0, 2.0, (256, 256))
     
     # Create thermal DICOM with organization UID
-    thermal_dicom = ThermalDicom(organization_uid_prefix=org_uid)
+    thermal_dicom = MedThermalDicom(organization_uid_prefix=org_uid)
     
     # Set thermal image
     thermal_dicom.set_thermal_image(temperature_data, temperature_data, (30.0, 45.0))
@@ -62,7 +62,7 @@ def create_thermal_without_org_uid():
     temperature_data = np.random.normal(37.0, 2.0, (256, 256))
     
     # Create thermal DICOM without organization UID
-    thermal_dicom = ThermalDicom()  # No organization_uid_prefix
+    thermal_dicom = MedThermalDicom()  # No organization_uid_prefix
     
     # Set thermal image
     thermal_dicom.set_thermal_image(temperature_data, temperature_data, (30.0, 45.0))
@@ -108,7 +108,7 @@ def demonstrate_uid_validation():
     """Demonstrate UID validation capabilities."""
     print("\n=== UID Validation Examples ===")
     
-    from thermal_dicom.utils import validate_organization_uid
+    from medthermal_dicom.utils import validate_organization_uid
     
     # Valid UIDs
     valid_uids = [
@@ -153,7 +153,7 @@ def save_and_load_with_org_uid():
     print(f"✓ Saved DICOM with organization UID to: {filename}")
     
     # Load DICOM file
-    loaded_dicom = ThermalDicom.load_dicom(filename)
+    loaded_dicom = MedThermalDicom.load_dicom(filename)
     
     # Check if organization UID information is preserved
     uid_info = loaded_dicom.get_organization_uid_info()

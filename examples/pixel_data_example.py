@@ -6,9 +6,10 @@ Simple example demonstrating pixel data handling for multi-view thermal imaging.
 import numpy as np
 import os
 import sys
-# Add parent directory to Python path to allow importing thermal_dicom when running examples directly
+# Add parent directory to Python path to allow importing medthermal_dicom when running examples directly
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from thermal_dicom import ThermalDicom, ThermalMetadata
+from medthermal_dicom.core import MedThermalDicom
+from medthermal_dicom.metadata import MedThermalMetadata
 
 
 def create_view_specific_thermal_data():
@@ -73,7 +74,7 @@ def demonstrate_pixel_data_handling():
     print("=== Pixel Data Handling for Multi-View Thermal Imaging ===\n")
     
     # Initialize metadata handler
-    metadata = ThermalMetadata()
+    metadata = MedThermalMetadata()
     
     # Define view configurations
     views = [
@@ -138,7 +139,7 @@ def demonstrate_pixel_data_handling():
         thermal_data = thermal_data_dict[view_key]
         
         # Create thermal DICOM
-        thermal_dicom = ThermalDicom()
+        thermal_dicom = MedThermalDicom()
         
         # Set the thermal image data for this view
         temp_min, temp_max = thermal_data.min(), thermal_data.max()

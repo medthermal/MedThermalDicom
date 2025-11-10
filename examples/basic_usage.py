@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Basic usage example for the Thermal DICOM Library.
+Basic usage example for the MedThermal DICOM Library.
 
 This example demonstrates how to:
 1. Create thermal DICOM images with proper metadata
@@ -12,13 +12,13 @@ This example demonstrates how to:
 
 import sys
 import os
-# Add parent directory to Python path to allow importing thermal_dicom
+# Add parent directory to Python path to allow importing medthermal_dicom
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
 import matplotlib.pyplot as plt
-from thermal_dicom import ThermalDicom, ThermalViewer, TemperatureConverter, ThermalCalibrator, ThermalMetadata
-from thermal_dicom.utils import ThermalROIAnalyzer
+from medthermal_dicom import MedThermalDicom, MedThermalViewer, MedThermalTemperatureConverter, MedThermalCalibrator, MedThermalMetadata
+from medthermal_dicom.utils import MedThermalROIAnalyzer
 
 
 def create_sample_thermal_data():
@@ -54,7 +54,7 @@ def create_sample_thermal_data():
 
 def basic_thermal_dicom_creation():
     """Demonstrate basic thermal DICOM creation."""
-    print("=== Basic Thermal DICOM Creation ===")
+    print("=== Basic MedThermal DICOM Creation ===")
     
     # Create sample thermal data
     temperature_data = create_sample_thermal_data()
@@ -62,11 +62,11 @@ def basic_thermal_dicom_creation():
     print(f"Temperature range: {temperature_data.min():.2f}°C to {temperature_data.max():.2f}°C")
     
     # Create thermal DICOM instance
-    thermal_dicom = ThermalDicom()
+    medthermal_dicom = MedThermalDicom()
     
     # Set thermal image data
     temp_range = (temperature_data.min(), temperature_data.max())
-    thermal_dicom.set_thermal_image(temperature_data, temperature_data, temp_range)
+    medthermal_dicom.set_thermal_image(temperature_data, temperature_data, temp_range)
     
     # Set thermal-specific parameters
     thermal_params = {
@@ -82,20 +82,20 @@ def basic_thermal_dicom_creation():
         'acquisition_mode': 'Medical Thermal Imaging'
     }
     
-    thermal_dicom.set_thermal_parameters(thermal_params)
+    medthermal_dicom.set_thermal_parameters(thermal_params)
     
     # Create standard medical thermal DICOM
-    thermal_dicom.create_standard_thermal_dicom(
+    medthermal_dicom.create_standard_thermal_dicom(
         patient_name="DOE^JOHN^",
         patient_id="THERM001",
         study_description="Breast Thermal Imaging Study"
     )
     
-    print("[OK] Thermal DICOM created with parameters:")
+    print("[OK] MedThermal DICOM created with parameters:")
     for param, value in thermal_params.items():
         print(f"  {param}: {value}")
     
-    return thermal_dicom
+    return medthermal_dicom
 
 
 def demonstrate_metadata_handling():
@@ -103,7 +103,7 @@ def demonstrate_metadata_handling():
     print("\n=== Metadata Handling ===")
     
     # Create metadata handler
-    metadata = ThermalMetadata()
+    metadata = MedThermalMetadata()
     
     # Set patient information
     metadata.set_patient_information(
@@ -134,7 +134,7 @@ def demonstrate_metadata_handling():
         manufacturer="FLIR Systems",
         manufacturer_model="E8-XT",
         device_serial_number="TH001234",
-        software_version="ThermalDICOM v1.0",
+        software_version="MedThermalDICOM v1.0",
         detector_type="Uncooled Microbolometer",
         spatial_resolution=(0.1, 0.1)  # 0.1mm pixel spacing
     )
@@ -168,13 +168,13 @@ def demonstrate_metadata_handling():
 
 def demonstrate_calibration():
     """Demonstrate thermal calibration capabilities."""
-    print("\n=== Thermal Calibration ===")
+    print("\n=== MedThermal Calibration ===")
     
     # Create sample raw temperature data
     raw_temp = create_sample_thermal_data()
     
     # Create calibrator
-    calibrator = ThermalCalibrator()
+    calibrator = MedThermalCalibrator()
     
     # Set calibration parameters
     calibrator.set_calibration_parameters(
@@ -197,13 +197,13 @@ def demonstrate_calibration():
 
 def demonstrate_visualization():
     """Demonstrate thermal visualization capabilities."""
-    print("\n=== Thermal Visualization ===")
+    print("\n=== MedThermal Visualization ===")
     
     # Create thermal DICOM
-    thermal_dicom = basic_thermal_dicom_creation()
+    medthermal_dicom = basic_thermal_dicom_creation()
     
     # Create viewer
-    viewer = ThermalViewer(thermal_dicom)
+    viewer = MedThermalViewer(medthermal_dicom)
     
     # Create interactive plot
     fig = viewer.create_interactive_plot(
@@ -223,20 +223,20 @@ def demonstrate_visualization():
     print("[OK] Temperature histogram saved to 'output/temperature_histogram.html'")
     
     # Demonstrate ROI analysis
-    roi_analyzer = ThermalROIAnalyzer()
+    roi_analyzer = MedThermalROIAnalyzer()
     
     # Create circular ROI
     roi_mask = roi_analyzer.create_circular_roi(
         center=(256, 300), 
         radius=50, 
-        image_shape=thermal_dicom.temperature_data.shape
+        image_shape=medthermal_dicom.temperature_data.shape
     )
     
     # Add ROI overlay
     viewer.add_roi_overlay(roi_mask, "Hot Spot ROI", "yellow", 2)
     
     # Analyze ROI statistics
-    roi_stats = thermal_dicom.calculate_roi_statistics(roi_mask)
+    roi_stats = medthermal_dicom.calculate_roi_statistics(roi_mask)
     print("[OK] ROI Analysis:")
     print(f"  Mean temperature: {roi_stats['mean_temperature']:.2f}°C")
     print(f"  Max temperature: {roi_stats['max_temperature']:.2f}°C")
@@ -255,15 +255,15 @@ def demonstrate_temperature_conversion():
     temp_celsius = 37.5
     
     # Convert to other units
-    temp_fahrenheit = TemperatureConverter.celsius_to_fahrenheit(temp_celsius)
-    temp_kelvin = TemperatureConverter.celsius_to_kelvin(temp_celsius)
+    temp_fahrenheit = MedThermalTemperatureConverter.celsius_to_fahrenheit(temp_celsius)
+    temp_kelvin = MedThermalTemperatureConverter.celsius_to_kelvin(temp_celsius)
     
     print(f"[OK] Temperature conversions for {temp_celsius}°C:")
     print(f"  Fahrenheit: {temp_fahrenheit:.2f}°F")
     print(f"  Kelvin: {temp_kelvin:.2f}K")
     
     # Convert back to verify
-    temp_back = TemperatureConverter.fahrenheit_to_celsius(temp_fahrenheit)
+    temp_back = MedThermalTemperatureConverter.fahrenheit_to_celsius(temp_fahrenheit)
     print(f"  Back to Celsius: {temp_back:.2f}°C (difference: {abs(temp_celsius - temp_back):.6f}°C)")
 
 
@@ -272,20 +272,20 @@ def demonstrate_file_operations():
     print("\n=== File Operations ===")
     
     # Create thermal DICOM
-    thermal_dicom = basic_thermal_dicom_creation()
+    medthermal_dicom = basic_thermal_dicom_creation()
     
     # Apply metadata
     metadata = demonstrate_metadata_handling()
-    metadata.apply_metadata_to_dataset(thermal_dicom.dataset)
+    metadata.apply_metadata_to_dataset(medthermal_dicom.dataset)
     
     # Save DICOM file
     os.makedirs('output', exist_ok=True)
-    thermal_dicom.save_dicom('output/thermal_sample.dcm')
-    print("[OK] Thermal DICOM saved to 'output/thermal_sample.dcm'")
+    medthermal_dicom.save_dicom('output/thermal_sample.dcm')
+    print("[OK] MedThermal DICOM saved to 'output/thermal_sample.dcm'")
     
     # Load DICOM file
-    loaded_thermal = ThermalDicom.load_dicom('output/thermal_sample.dcm')
-    print("[OK] Thermal DICOM loaded successfully")
+    loaded_thermal = MedThermalDicom.load_dicom('output/thermal_sample.dcm')
+    print("[OK] MedThermal DICOM loaded successfully")
     
     # Verify loaded data
     if loaded_thermal.thermal_array is not None:
@@ -307,20 +307,20 @@ def demonstrate_advanced_analysis():
     print("\n=== Advanced Analysis ===")
     
     # Create thermal DICOM
-    thermal_dicom = basic_thermal_dicom_creation()
-    temp_data = thermal_dicom.temperature_data
+    medthermal_dicom = basic_thermal_dicom_creation()
+    temp_data = medthermal_dicom.temperature_data
     
     # Calculate temperature gradient
-    from thermal_dicom.utils import ThermalImageProcessor
+    from medthermal_dicom.utils import MedThermalImageProcessor
     
-    grad_magnitude, grad_direction = ThermalImageProcessor.calculate_temperature_gradient(temp_data)
+    grad_magnitude, grad_direction = MedThermalImageProcessor.calculate_temperature_gradient(temp_data)
     
     print(f"[OK] Temperature gradient analysis:")
     print(f"  Max gradient magnitude: {grad_magnitude.max():.3f}°C/pixel")
     print(f"  Mean gradient magnitude: {grad_magnitude.mean():.3f}°C/pixel")
     
     # Apply spatial filtering
-    filtered_temp = ThermalImageProcessor.apply_spatial_filter(
+    filtered_temp = MedThermalImageProcessor.apply_spatial_filter(
         temp_data, filter_type='gaussian', filter_size=1.0
     )
     
@@ -328,7 +328,7 @@ def demonstrate_advanced_analysis():
     print(f"  Noise reduction from filtering: {noise_reduction:.3f}°C std")
     
     # Remove bad pixels
-    cleaned_temp = ThermalImageProcessor.remove_bad_pixels(temp_data, threshold_std=3.0)
+    cleaned_temp = MedThermalImageProcessor.remove_bad_pixels(temp_data, threshold_std=3.0)
     bad_pixels_removed = np.sum(np.abs(cleaned_temp - temp_data) > 0.01)
     print(f"  Bad pixels corrected: {bad_pixels_removed}")
     
@@ -337,12 +337,12 @@ def demonstrate_advanced_analysis():
 
 def main():
     """Run all demonstration examples."""
-    print("Thermal DICOM Library - Basic Usage Examples")
+    print("MedThermal DICOM Library - Basic Usage Examples")
     print("=" * 50)
     
     try:
         # Basic creation
-        thermal_dicom = basic_thermal_dicom_creation()
+        medthermal_dicom = basic_thermal_dicom_creation()
         
         # Metadata handling
         metadata = demonstrate_metadata_handling()

@@ -11,7 +11,9 @@ import sys
 from datetime import datetime
 # Add parent directory to Python path to allow importing thermal_dicom when running examples directly
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from thermal_dicom import ThermalDicom, ThermalMetadata, ThermalViewer
+from medthermal_dicom.core import MedThermalDicom
+from medthermal_dicom.metadata import MedThermalMetadata
+from medthermal_dicom.visualization import ThermalViewer
 from scipy import io 
 from PIL import Image
 
@@ -34,7 +36,7 @@ class MultiViewThermalImaging:
 			organization_uid_prefix: Organization UID prefix for DICOM files
 		"""
 		self.organization_uid_prefix = organization_uid_prefix
-		self.metadata = ThermalMetadata(organization_uid_prefix=organization_uid_prefix)
+		self.metadata = MedThermalMetadata(organization_uid_prefix=organization_uid_prefix)
 		
 	def create_breast_thermography_views(self, 
 	                                   patient_name: str,
@@ -97,7 +99,7 @@ class MultiViewThermalImaging:
 			thermal_data = thermal_data_dict[view_key]
 			
 			# Create thermal DICOM
-			thermal_dicom = ThermalDicom(
+			thermal_dicom = MedThermalDicom(
 				organization_uid_prefix=self.organization_uid_prefix
 			)
 			
@@ -259,7 +261,7 @@ class MultiViewThermalImaging:
 			thermal_data = thermal_data_dict[view_key]
 			
 			# Create thermal DICOM
-			thermal_dicom = ThermalDicom(
+			thermal_dicom = MedThermalDicom(
 				organization_uid_prefix=self.organization_uid_prefix
 			)
 			
@@ -376,7 +378,7 @@ class MultiViewThermalImaging:
 			thermal_data = thermal_data_dict[view_key]
 			
 			# Create thermal DICOM
-			thermal_dicom = ThermalDicom(
+			thermal_dicom = MedThermalDicom(
 				organization_uid_prefix=self.organization_uid_prefix
 			)
 			

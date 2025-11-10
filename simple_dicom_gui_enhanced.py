@@ -13,18 +13,45 @@ from datetime import datetime
 import numpy as np
 from PIL import Image, ImageTk, ImageOps
 
-# Add the thermal_dicom package to the path
+
+class ToolTip:
+    """Create a tooltip for a given widget."""
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tooltip = None
+        self.widget.bind("<Enter>", self.show_tooltip)
+        self.widget.bind("<Leave>", self.hide_tooltip)
+    
+    def show_tooltip(self, event=None):
+        if self.tooltip:
+            return
+        x, y, _, _ = self.widget.bbox("insert")
+        x += self.widget.winfo_rootx() + 25
+        y += self.widget.winfo_rooty() + 25
+        
+        self.tooltip = tk.Toplevel(self.widget)
+        self.tooltip.wm_overrideredirect(True)
+        self.tooltip.wm_geometry(f"+{x}+{y}")
+        
+        label = tk.Label(self.tooltip, text=self.text, background="#ffffe0", 
+                        relief="solid", borderwidth=1, font=("Segoe UI", 9))
+        label.pack()
+    
+    def hide_tooltip(self, event=None):
+        if self.tooltip:
+            self.tooltip.destroy()
+            self.tooltip = None
+
+# Add the medthermal_dicom package to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from thermal_dicom.core import ThermalDicom
-    from thermal_dicom.metadata import ThermalMetadata
-    from thermal_dicom.utils import get_common_organization_uids, validate_organization_uid
-    # Import the MultiViewThermalImaging class from the examples
-    sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'examples'))
-    from multi_view_thermal_imaging import MultiViewThermalImaging
+    from medthermal_dicom.core import MedThermalDicom
+    from medthermal_dicom.metadata import MedThermalMetadata
+    from medthermal_dicom.utils import get_common_organization_uids, validate_organization_uid
 except ImportError as e:
-    print(f"Error importing thermal_dicom: {e}")
+    print(f"Error importing medthermal_dicom: {e}")
     sys.exit(1)
 
 
@@ -50,11 +77,6 @@ class EnhancedDicomCreatorGUI:
         self.organization_uid = tk.StringVar()
         self.scan_date = tk.StringVar(value=datetime.now().strftime("%Y%m%d"))
         self.study_date = tk.StringVar(value=datetime.now().strftime("%Y%m%d"))
-        self.input_files = []  # List to store multiple input files
-        
-        # Initialize MultiViewThermalImaging instance
-        self.multi_view_handler = None
-        self.metadata_handler = None
         
         # Create GUI
         self.create_widgets()
@@ -105,20 +127,37 @@ class EnhancedDicomCreatorGUI:
     def create_widgets(self):
         """Create the enhanced GUI widgets."""
         # Main frame with scrollbar
-        main_canvas = tk.Canvas(self.root, bg='#f8f9fa', highlightthickness=0)
-        scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=main_canvas.yview)
-        scrollable_frame = ttk.Frame(main_canvas)
+        self.main_canvas = tk.Canvas(self.root, bg='#f8f9fa', highlightthickness=0)
+        scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=self.main_canvas.yview)
+        scrollable_frame = ttk.Frame(self.main_canvas)
         
         scrollable_frame.bind(
             "<Configure>",
-            lambda e: main_canvas.configure(scrollregion=main_canvas.bbox("all"))
+            lambda e: self.main_canvas.configure(scrollregion=self.main_canvas.bbox("all"))
         )
         
-        main_canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        main_canvas.configure(yscrollcommand=scrollbar.set)
+        # Create window with full width
+        canvas_window = self.main_canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        
+        # Make scrollable_frame expand to canvas width
+        def on_canvas_configure(event):
+            self.main_canvas.itemconfig(canvas_window, width=event.width)
+        
+        self.main_canvas.bind("<Configure>", on_canvas_configure)
+        self.main_canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Enable mouse wheel scrolling anywhere on the window
+        def on_mousewheel(event):
+            self.main_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        # Bind mouse wheel to root window (works anywhere in the GUI)
+        self.root.bind("<MouseWheel>", on_mousewheel)
+        
+        # Also bind to canvas for good measure
+        self.main_canvas.bind("<MouseWheel>", on_mousewheel)
         
         # Pack canvas and scrollbar
-        main_canvas.pack(side="left", fill="both", expand=True)
+        self.main_canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
         
         # Title section with logo
@@ -138,11 +177,11 @@ class EnhancedDicomCreatorGUI:
                                  padding="10", style='Card.TLabelframe')
         io_frame.pack(fill='x', pady=(0, 15), padx=15)
         
-        # Input files section
+        # Input file section
         input_frame = ttk.Frame(io_frame)
         input_frame.pack(fill='x', pady=(0, 15))
         
-        ttk.Label(input_frame, text="📸 Input Files (Multi-view):", 
+        ttk.Label(input_frame, text="📸 Input File:", 
                  style='Header.TLabel').pack(anchor='w', pady=(0, 5))
         
         input_controls = ttk.Frame(input_frame)
@@ -150,33 +189,16 @@ class EnhancedDicomCreatorGUI:
         
         ttk.Entry(input_controls, textvariable=self.input_file, width=60, 
                  style='Modern.TEntry').pack(side='left', fill='x', expand=True, padx=(0, 10))
-        ttk.Button(input_controls, text="📂 Browse Files", command=self.browse_input, 
+        ttk.Button(input_controls, text="📂 Browse File", command=self.browse_input, 
                   style='Primary.TButton').pack(side='left', padx=(0, 5))
-        ttk.Button(input_controls, text="🗑️ Clear All", command=self.clear_input_files, 
+        ttk.Button(input_controls, text="🗑️ Clear", command=self.clear_input_file, 
                   style='Danger.TButton').pack(side='left')
-        
-        # File list with modern styling
-        list_frame = ttk.Frame(input_frame)
-        list_frame.pack(fill='x', pady=(10, 0))
-        
-        ttk.Label(list_frame, text="Selected Files:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
-        
-        # Create a frame for the listbox with border
-        listbox_frame = ttk.Frame(list_frame, relief='solid', borderwidth=1)
-        listbox_frame.pack(fill='x')
-        
-        self.file_listbox = tk.Listbox(listbox_frame, height=4, font=('Segoe UI', 9),
-                                      selectmode='single', activestyle='none',
-                                      selectbackground='#3498db', selectforeground='white',
-                                      bg='#ffffff', fg='#2c3e50', relief='flat')
-        self.file_listbox.pack(fill='both', expand=True, padx=2, pady=2)
-        self.file_listbox.bind('<<ListboxSelect>>', self.on_file_select)
         
         # File info display
         info_frame = ttk.Frame(input_frame)
         info_frame.pack(fill='x', pady=(15, 0))
         
-        self.file_info_var = tk.StringVar(value="Select files to see information")
+        self.file_info_var = tk.StringVar(value="Select a file to see information")
         self.file_info_label = ttk.Label(info_frame, textvariable=self.file_info_var, 
                                         style='Info.TLabel')
         self.file_info_label.pack(anchor='w')
@@ -200,36 +222,45 @@ class EnhancedDicomCreatorGUI:
                                       padding="10", style='Card.TLabelframe')
         patient_frame.pack(fill='x', pady=(0, 15), padx=15)
         
-        # Patient info in two columns
-        patient_left = ttk.Frame(patient_frame)
-        patient_left.pack(side='left', fill='x', expand=True, padx=(0, 10))
+        # Configure grid columns
+        patient_frame.columnconfigure(0, weight=0, minsize=120)  # Label column
+        patient_frame.columnconfigure(1, weight=1)  # Input column
+        patient_frame.columnconfigure(2, weight=0, minsize=80)   # Label column
+        patient_frame.columnconfigure(3, weight=0, minsize=100)  # Input column
         
-        patient_right = ttk.Frame(patient_frame)
-        patient_right.pack(side='left', fill='x', expand=True)
+        # Row 1: Patient Name and Age
+        ttk.Label(patient_frame, text="Patient Name: *", style='Header.TLabel').grid(
+            row=0, column=0, sticky='w', pady=(0, 10), padx=(0, 5))
+        patient_name_entry = ttk.Entry(patient_frame, textvariable=self.patient_name, width=25, 
+                 style='Modern.TEntry')
+        patient_name_entry.grid(row=0, column=1, sticky='ew', pady=(0, 10), padx=(0, 20))
         
-        # Left column
-        ttk.Label(patient_left, text="Patient Name:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
-        ttk.Entry(patient_left, textvariable=self.patient_name, width=35, 
-                 style='Modern.TEntry').pack(fill='x', pady=(0, 15))
+        ttk.Label(patient_frame, text="Age: *", style='Header.TLabel').grid(
+            row=0, column=2, sticky='w', pady=(0, 10), padx=(0, 5))
+        patient_age_entry = ttk.Entry(patient_frame, textvariable=self.patient_age, width=10, 
+                 style='Modern.TEntry')
+        patient_age_entry.grid(row=0, column=3, sticky='w', pady=(0, 10))
+        ToolTip(patient_age_entry, "Enter age in years (e.g., 45)")
         
-        ttk.Label(patient_left, text="Patient ID:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
-        ttk.Entry(patient_left, textvariable=self.patient_id, width=35, 
-                 style='Modern.TEntry').pack(fill='x', pady=(0, 15))
+        # Row 2: Patient ID and Gender
+        ttk.Label(patient_frame, text="Patient ID: *", style='Header.TLabel').grid(
+            row=1, column=0, sticky='w', pady=(0, 10), padx=(0, 5))
+        patient_id_entry = ttk.Entry(patient_frame, textvariable=self.patient_id, width=25, 
+                 style='Modern.TEntry')
+        patient_id_entry.grid(row=1, column=1, sticky='ew', pady=(0, 10), padx=(0, 20))
         
-        ttk.Label(patient_left, text="Referring Physician:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
-        ttk.Entry(patient_left, textvariable=self.referring_physician, width=35, 
-                 style='Modern.TEntry').pack(fill='x')
-        
-        # Right column
-        ttk.Label(patient_right, text="Age:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
-        ttk.Entry(patient_right, textvariable=self.patient_age, width=15, 
-                 style='Modern.TEntry').pack(fill='x', pady=(0, 15))
-        
-        ttk.Label(patient_right, text="Gender:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
-        gender_combo = ttk.Combobox(patient_right, textvariable=self.patient_gender, 
-                                   values=["", "M", "F", "O"], width=10, state="readonly",
+        ttk.Label(patient_frame, text="Gender:", style='Header.TLabel').grid(
+            row=1, column=2, sticky='w', pady=(0, 10), padx=(0, 5))
+        gender_combo = ttk.Combobox(patient_frame, textvariable=self.patient_gender, 
+                                   values=["", "M", "F", "O"], width=8, state="readonly",
                                    style='Modern.TCombobox')
-        gender_combo.pack(fill='x', pady=(0, 15))
+        gender_combo.grid(row=1, column=3, sticky='w', pady=(0, 10))
+        
+        # Row 3: Referring Physician (spans all columns)
+        ttk.Label(patient_frame, text="Referring Physician:", style='Header.TLabel').grid(
+            row=2, column=0, sticky='w', pady=(0, 5), padx=(0, 5))
+        ttk.Entry(patient_frame, textvariable=self.referring_physician, width=50, 
+                 style='Modern.TEntry').grid(row=2, column=1, columnspan=3, sticky='ew')
         
         # Study Information Section
         study_frame = ttk.LabelFrame(scrollable_frame, text="🔬 Study Information", 
@@ -244,8 +275,10 @@ class EnhancedDicomCreatorGUI:
         uid_controls = ttk.Frame(uid_frame)
         uid_controls.pack(fill='x')
         
-        ttk.Entry(uid_controls, textvariable=self.organization_uid, width=60, 
-                 style='Modern.TEntry').pack(side='left', fill='x', expand=True, padx=(0, 10))
+        org_uid_entry = ttk.Entry(uid_controls, textvariable=self.organization_uid, width=60, 
+                 style='Modern.TEntry')
+        org_uid_entry.pack(side='left', fill='x', expand=True, padx=(0, 10))
+        ToolTip(org_uid_entry, "Optional - If empty, a unique UID will be auto-generated")
         ttk.Button(uid_controls, text="📋 Common UIDs", command=self.show_common_uids, 
                   style='Primary.TButton').pack(side='left')
         
@@ -297,8 +330,10 @@ class EnhancedDicomCreatorGUI:
         
         ttk.Label(accession_frame, text="Accession Number:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
         self.accession_number = tk.StringVar()
-        ttk.Entry(accession_frame, textvariable=self.accession_number, width=20, 
-                 style='Modern.TEntry').pack(fill='x')
+        accession_entry = ttk.Entry(accession_frame, textvariable=self.accession_number, width=20, 
+                 style='Modern.TEntry')
+        accession_entry.pack(fill='x')
+        ToolTip(accession_entry, "Optional - Only required for hospital/PACS integration")
         
         # Row 2: Study Time and Series Time
         study_row2 = ttk.Frame(additional_frame)
@@ -344,15 +379,15 @@ class EnhancedDicomCreatorGUI:
                                       width=15, state="readonly", style='Modern.TCombobox')
         body_part_combo.pack(fill='x')
         
-        # Row 4: View Position and Patient Position
+        # Row 4: View Position and Laterality
         study_row4 = ttk.Frame(additional_frame)
         study_row4.pack(fill='x', pady=(0, 10))
         
         view_pos_frame = ttk.Frame(study_row4)
         view_pos_frame.pack(side='left', fill='x', expand=True, padx=(0, 10))
         
-        patient_pos_frame = ttk.Frame(study_row4)
-        patient_pos_frame.pack(side='left', fill='x', expand=True)
+        laterality_frame = ttk.Frame(study_row4)
+        laterality_frame.pack(side='left', fill='x', expand=True)
         
         ttk.Label(view_pos_frame, text="View Position:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
         self.view_position = tk.StringVar()
@@ -361,23 +396,6 @@ class EnhancedDicomCreatorGUI:
                                      width=10, state="readonly", style='Modern.TCombobox')
         view_pos_combo.pack(fill='x')
         
-        ttk.Label(patient_pos_frame, text="Patient Position:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
-        self.patient_position = tk.StringVar()
-        patient_pos_combo = ttk.Combobox(patient_pos_frame, textvariable=self.patient_position, 
-                                        values=["", "FFS", "FFP", "FFDR", "FFDL", "HFDR", "HFDL"], 
-                                        width=10, state="readonly", style='Modern.TCombobox')
-        patient_pos_combo.pack(fill='x')
-        
-        # Row 5: Laterality and Anatomical Region
-        study_row5 = ttk.Frame(additional_frame)
-        study_row5.pack(fill='x', pady=(0, 10))
-        
-        laterality_frame = ttk.Frame(study_row5)
-        laterality_frame.pack(side='left', fill='x', expand=True, padx=(0, 10))
-        
-        anatomical_frame = ttk.Frame(study_row5)
-        anatomical_frame.pack(side='left', fill='x', expand=True)
-        
         ttk.Label(laterality_frame, text="Laterality:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
         self.laterality = tk.StringVar()
         laterality_combo = ttk.Combobox(laterality_frame, textvariable=self.laterality, 
@@ -385,12 +403,6 @@ class EnhancedDicomCreatorGUI:
                                        width=10, state="readonly", style='Modern.TCombobox')
         laterality_combo.pack(fill='x')
         
-        ttk.Label(anatomical_frame, text="Anatomical Region:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
-        self.anatomical_region = tk.StringVar()
-        anatomical_combo = ttk.Combobox(anatomical_frame, textvariable=self.anatomical_region, 
-                                       values=["", "BREAST", "HAND", "FOOT", "FACE", "CHEST", "ABDOMEN", "BACK", "EXTREMITY"], 
-                                       width=15, state="readonly", style='Modern.TCombobox')
-        anatomical_combo.pack(fill='x')
         
         # Thermal Parameters Section
         thermal_frame = ttk.LabelFrame(scrollable_frame, text="🌡️ Thermal Imaging Parameters", 
@@ -485,7 +497,7 @@ class EnhancedDicomCreatorGUI:
         action_buttons = ttk.Frame(button_frame)
         action_buttons.pack()
         
-        ttk.Button(action_buttons, text="🚀 Create DICOM Series", command=self.create_dicom, 
+        ttk.Button(action_buttons, text="🚀 Create DICOM", command=self.create_dicom, 
                   style='Success.TButton').pack(side='left', padx=(0, 15))
         ttk.Button(action_buttons, text="🧹 Clear All", command=self.clear_all, 
                   style='Danger.TButton').pack(side='left', padx=(0, 15))
@@ -526,7 +538,7 @@ class EnhancedDicomCreatorGUI:
         # Create a new window
         uid_window = tk.Toplevel(self.root)
         uid_window.title("Common Organization UIDs")
-        uid_window.geometry("600x400")
+        uid_window.geometry("700x400")
         uid_window.transient(self.root)
         uid_window.grab_set()
         
@@ -538,49 +550,55 @@ class EnhancedDicomCreatorGUI:
         listbox = tk.Listbox(uid_window, font=('Consolas', 9), selectmode='single')
         listbox.pack(fill='both', expand=True, padx=20, pady=10)
         
-        # Add UIDs
-        for uid in self.common_uids:
-            listbox.insert(tk.END, uid)
+        # Add UIDs with names (store mapping)
+        uid_mapping = {}
+        for name, uid in self.common_uids.items():
+            display_text = f"{name}: {uid}"
+            listbox.insert(tk.END, display_text)
+            uid_mapping[display_text] = uid
         
         # Add copy button
         def copy_selected():
             selection = listbox.curselection()
             if selection:
-                selected_uid = listbox.get(selection[0])
+                selected_text = listbox.get(selection[0])
+                selected_uid = uid_mapping[selected_text]
                 uid_window.clipboard_clear()
                 uid_window.clipboard_append(selected_uid)
                 self.organization_uid.set(selected_uid)
-                messagebox.showinfo("Copied", f"UID copied to clipboard and form:\n{selected_uid}")
+                uid_window.destroy()
+                messagebox.showinfo("Selected", f"UID set to:\n{selected_uid}")
         
-        ttk.Button(uid_window, text="Copy Selected UID", command=copy_selected).pack(pady=10)
+        ttk.Button(uid_window, text="Select UID", command=copy_selected).pack(pady=10)
     
     def show_help(self):
         """Show help information."""
         help_text = """
 MedTherm DICOM - Help
 
-📁 Input Files:
-• Select multiple image files (PNG, JPG, TIFF, BMP) or CSV files
+📁 Input File:
+• Select a single image file (PNG, JPG, TIFF, BMP) or CSV file
 • CSV files should contain temperature data in Celsius
 • Images will be processed as thermal data
 
 👤 Patient Information:
 • Fill in patient details for DICOM metadata
-• Patient ID is required for file naming
+• Patient ID is recommended for file naming
 
 🔬 Study Information:
 • Organization UID: Your institution's unique identifier
 • Study Description: Brief description of the imaging study
 • Dates: Use YYYYMMDD format (e.g., 20241201)
 
-📊 Multi-view Support:
-• Create DICOM series from multiple angles/views
-• All files share the same series UID for proper grouping
-• Each file gets a unique instance number
+🌡️ Thermal Parameters:
+• Emissivity: Surface emissivity (default: 0.98 for human skin)
+• Distance: Distance from camera in meters
+• Ambient Temperature: Room temperature in °C
+• Other parameters for accurate temperature calibration
 
 🚀 Creating DICOM:
-• Click 'Create DICOM Series' to process all files
-• Files are saved with descriptive names
+• Click 'Create DICOM' to process the file
+• File is saved with a descriptive name including patient ID and timestamp
 • Temperature data is properly scaled for DICOM viewers
 
 For technical support, contact your system administrator.
@@ -597,32 +615,24 @@ For technical support, contact your system administrator.
         text_widget.config(state='disabled')
     
     def browse_input(self):
-        """Browse for input files."""
+        """Browse for input file."""
         filetypes = [
             ("Image files", "*.png *.jpg *.jpeg *.tiff *.tif *.bmp"),
             ("CSV files", "*.csv"),
             ("All files", "*.*")
         ]
-        filenames = filedialog.askopenfilenames(title="Select Input Files", filetypes=filetypes)
-        if filenames:
-            self.input_files = list(filenames)
-            self.input_file.set(f"{len(filenames)} file(s) selected")
-            self.update_file_list()
-            self.preview_selected_file()
+        filename = filedialog.askopenfilename(title="Select Input File", filetypes=filetypes)
+        if filename:
+            self.input_file.set(filename)
+            self.preview_selected_file(filename)
     
-    def update_file_list(self):
-        """Update the file listbox with selected files."""
-        self.file_listbox.delete(0, tk.END)
-        for i, filename in enumerate(self.input_files):
-            basename = os.path.basename(filename)
-            self.file_listbox.insert(tk.END, f"{i+1}. {basename}")
     
     def preview_selected_file(self, filename=None):
         """Show file information for the selected file."""
-        if filename is None and self.input_files:
-            filename = self.input_files[0]
+        if filename is None:
+            filename = self.input_file.get()
         
-        if not filename:
+        if not filename or not os.path.exists(filename):
             return
             
         ext = os.path.splitext(filename)[1].lower()
@@ -669,25 +679,14 @@ For technical support, contact your system administrator.
     
     def clear_file_info(self):
         """Clear file information display."""
-        self.file_info_var.set("Select files to see information")
+        self.file_info_var.set("Select a file to see information")
         self.csv_data = None
         self.is_temperature_data = False
     
-    def clear_input_files(self):
-        """Clear all input files."""
-        self.input_files = []
+    def clear_input_file(self):
+        """Clear input file."""
         self.input_file.set("")
-        self.file_listbox.delete(0, tk.END)
         self.clear_file_info()
-    
-    def on_file_select(self, event):
-        """Handle file selection in listbox for preview."""
-        selection = self.file_listbox.curselection()
-        if selection:
-            index = selection[0]
-            if 0 <= index < len(self.input_files):
-                filename = self.input_files[index]
-                self.preview_selected_file(filename)
     
     def browse_output(self):
         """Browse for output folder."""
@@ -696,116 +695,214 @@ For technical support, contact your system administrator.
             self.output_folder.set(folder)
     
     def create_dicom(self):
-        """Create DICOM files from input data using MultiViewThermalImaging class."""
+        """Create DICOM file from input data."""
         if not self.validate_inputs():
             return
         
-        if not self.input_files:
-            messagebox.showerror("Error", "Please select input files")
+        input_file = self.input_file.get().strip()
+        if not input_file:
+            messagebox.showerror("Error", "Please select an input file")
             return
         
         try:
-            self.status_var.set("🔄 Creating DICOM series...")
+            self.status_var.set("🔄 Creating DICOM file...")
             self.root.update()
             
-            # Get organization UID
+            # Get organization UID (generate if empty)
             org_uid = self.organization_uid.get().strip()
             if not org_uid:
-                messagebox.showerror("Error", "Organization UID is required")
-                return
-            
-            # Validate organization UID
-            if not validate_organization_uid(org_uid):
-                messagebox.showerror("Error", "Invalid Organization UID format")
-                return
-            
-            # Initialize MultiViewThermalImaging handler
-            self.multi_view_handler = MultiViewThermalImaging(organization_uid_prefix=org_uid)
-            self.metadata_handler = self.multi_view_handler.metadata
+                # Auto-generate using pydicom if not provided
+                from pydicom.uid import generate_uid
+                org_uid = generate_uid()
+                self.status_var.set("🔄 Auto-generated Organization UID...")
+                self.root.update()
+            else:
+                # Validate if provided
+                if not validate_organization_uid(org_uid):
+                    messagebox.showerror("Error", "Invalid Organization UID format")
+                    return
             
             # Create output directory if it doesn't exist
             output_dir = self.output_folder.get()
             os.makedirs(output_dir, exist_ok=True)
             
-            # Prepare thermal data dictionary
-            thermal_data_dict = {}
-            view_configs = []
+            # Load data based on file type
+            ext = os.path.splitext(input_file)[1].lower()
+            base_name = os.path.splitext(os.path.basename(input_file))[0]
             
-            # Process each input file
-            for i, input_file in enumerate(self.input_files):
-                try:
-                    # Load data based on file type
-                    ext = os.path.splitext(input_file)[1].lower()
-                    base_name = os.path.splitext(os.path.basename(input_file))[0]
-                    
-                    if ext == ".csv":
-                        thermal_array = self.load_csv_data(input_file)
-                    else:
-                        thermal_array = self.load_image_data(input_file)
-                    
-                    # Create view key and config
-                    view_key = f"view_{i+1}"
-                    thermal_data_dict[view_key] = thermal_array
-                    
-                    # Create view configuration
-                    view_config = {
-                        'view_key': view_key,
-                        'view_position': self.view_position.get() or 'A',
-                        'view_comment': f'{base_name} view',
-                        'image_laterality': self.laterality.get() or 'B',
-                        'patient_position': self.patient_position.get() or 'STANDING',
-                        'acquisition_view': f'{base_name} thermal imaging view'
-                    }
-                    view_configs.append(view_config)
-                    
-                    self.status_var.set(f"🔄 Processing file {i+1}/{len(self.input_files)}: {base_name}")
-                    self.root.update()
-                    
-                except Exception as e:
-                    messagebox.showerror("Error", f"Failed to process {input_file}: {e}")
-                    continue
+            self.status_var.set(f"🔄 Loading file: {base_name}")
+            self.root.update()
             
-            if not thermal_data_dict:
-                messagebox.showerror("Error", "No valid files were processed")
-                return
+            if ext == ".csv":
+                thermal_array = self.load_csv_data(input_file)
+            else:
+                thermal_array = self.load_image_data(input_file)
             
-            # Get anatomical region from UI
-            anatomical_region = self.anatomical_region.get() or self.body_part.get() or "unknown"
-            anatomical_region = anatomical_region.lower().replace(" ", "_")
+            # Create MedThermalDicom instance
+            thermal_dicom = MedThermalDicom(organization_uid_prefix=org_uid)
             
-            # Create custom multi-view series using the same pattern as the script
-            created_files = self.multi_view_handler.create_custom_multi_view_series(
-                patient_name=self.patient_name.get() or "ANONYMOUS",
-                patient_id=self.patient_id.get() or "UNKNOWN",
-                anatomical_region=anatomical_region,
-                view_configs=view_configs,
-                thermal_data_dict=thermal_data_dict,
-                output_dir=output_dir
+            # Create metadata handler for proper SNOMED CT coding
+            metadata = MedThermalMetadata(organization_uid_prefix=org_uid)
+            
+            # Set thermal image data
+            if thermal_array.ndim == 3:
+                # Color image
+                thermal_dicom.set_thermal_image(thermal_array)
+            else:
+                # Temperature data
+                temp_min, temp_max = float(thermal_array.min()), float(thermal_array.max())
+                thermal_dicom.set_thermal_image(thermal_array, thermal_array, (temp_min, temp_max))
+            
+            self.status_var.set("🔄 Setting metadata...")
+            self.root.update()
+            
+            # Set equipment information using standard DICOM fields
+            equipment_info = metadata.set_equipment_information(
+                manufacturer=self.camera_model.get().split()[0].upper() if self.camera_model.get() else "THERMAL_IMAGING",
+                manufacturer_model=self.camera_model.get() or "Thermal Camera",
+                software_version="MedThermalDICOM_v1.0"
             )
             
-            if created_files:
-                messagebox.showinfo("Success", f"🎉 DICOM series created successfully!\n\nCreated {len(created_files)} files in series.\n\nSaved to: {output_dir}")
-                self.status_var.set(f"✅ DICOM series created: {len(created_files)} files")
-            else:
-                messagebox.showerror("Error", "No DICOM files were created successfully")
-                self.status_var.set("❌ Failed to create DICOM series")
+            # Set thermal parameters (only the ones that are in PRIVATE_OFFSETS)
+            thermal_params = {
+                'emissivity': float(self.emissivity.get()),
+                'distance_from_camera': float(self.distance.get()),
+                'ambient_temperature': float(self.ambient_temp.get()),
+                'reflected_temperature': float(self.reflected_temp.get()),
+                'relative_humidity': float(self.humidity.get())
+            }
+            thermal_dicom.set_thermal_parameters(thermal_params)
+            
+            # Set patient information
+            thermal_dicom.dataset.PatientName = self.patient_name.get() or "ANONYMOUS"
+            thermal_dicom.dataset.PatientID = self.patient_id.get() or "UNKNOWN"
+            
+            # Format age properly for DICOM (must be nnnY, nnnM, nnnW, or nnnD)
+            if self.patient_age.get():
+                try:
+                    age_value = int(self.patient_age.get())
+                    # Format as 3-digit number followed by 'Y' for years
+                    thermal_dicom.dataset.PatientAge = f"{age_value:03d}Y"
+                except ValueError:
+                    # If not a number, try to use as-is (user might have entered formatted value)
+                    thermal_dicom.dataset.PatientAge = self.patient_age.get()
+            
+            if self.patient_gender.get():
+                thermal_dicom.dataset.PatientSex = self.patient_gender.get()
+            
+            if self.referring_physician.get():
+                thermal_dicom.dataset.ReferringPhysicianName = self.referring_physician.get()
+            
+            # Set study information
+            thermal_dicom.dataset.StudyDescription = self.study_description.get()
+            thermal_dicom.dataset.StudyDate = self.study_date.get()
+            thermal_dicom.dataset.StudyTime = self.study_time.get()
+            # SeriesDate should be a date (YYYYMMDD), not time
+            thermal_dicom.dataset.SeriesDate = self.scan_date.get()
+            thermal_dicom.dataset.SeriesTime = self.series_time.get()
+            
+            if self.study_id.get():
+                thermal_dicom.dataset.StudyID = self.study_id.get()
+            
+            if self.accession_number.get():
+                thermal_dicom.dataset.AccessionNumber = self.accession_number.get()
+            
+            # Map GUI body part values to metadata keys for SNOMED CT coding
+            body_part_mapping = {
+                'BREAST': 'breast',
+                'HAND': 'hand',
+                'FOOT': 'foot',
+                'FACE': 'face',
+                'CHEST': 'chest',
+                'ABDOMEN': 'abdomen',
+                'BACK': 'back',
+                'WHOLE BODY': 'whole_body'
+            }
+            
+            # Use metadata handler to set series information with SNOMED CT codes
+            body_part_key = None
+            if self.body_part.get():
+                body_part_key = body_part_mapping.get(self.body_part.get().upper())
+            
+            series_info = metadata.set_series_information(
+                series_description=self.study_description.get() or "Thermal Imaging",
+                series_number=1,
+                modality=self.modality.get(),
+                body_part=body_part_key,
+                laterality=self.laterality.get() if self.laterality.get() else None
+            )
+            
+            # Apply series information with SNOMED CT codes to dataset
+            # This also applies equipment information (Manufacturer, ManufacturerModelName, etc.)
+            metadata.apply_metadata_to_dataset(thermal_dicom.dataset)
+            
+            # Set view position separately (not part of series_info)
+            if self.view_position.get():
+                thermal_dicom.dataset.ViewPosition = self.view_position.get()
+            
+            # Store acquisition mode in a standard DICOM field
+            if self.acquisition_mode.get():
+                thermal_dicom.dataset.AcquisitionDeviceProcessingDescription = self.acquisition_mode.get()
+            
+            # Store calibration date
+            if self.calibration_date.get():
+                thermal_dicom.dataset.CalibrationDate = self.calibration_date.get()
+            
+            # Generate output filename
+            patient_id = self.patient_id.get() or "UNKNOWN"
+            patient_id = patient_id.replace(' ', '_')
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_filename = f"thermal_{patient_id}_{base_name}_{timestamp}.dcm"
+            output_path = os.path.join(output_dir, output_filename)
+            
+            self.status_var.set("🔄 Saving DICOM file...")
+            self.root.update()
+            
+            # Save DICOM file
+            thermal_dicom.save_dicom(output_path)
+            
+            messagebox.showinfo("Success", f"🎉 DICOM file created successfully!\n\nSaved to:\n{output_path}")
+            self.status_var.set(f"✅ DICOM file created successfully")
             
         except Exception as e:
-            messagebox.showerror("Error", f"Error creating DICOM series: {e}")
-            self.status_var.set("❌ Error creating DICOM series")
+            messagebox.showerror("Error", f"Error creating DICOM file: {e}")
+            self.status_var.set("❌ Error creating DICOM file")
+            import traceback
+            traceback.print_exc()
     
     def validate_inputs(self):
         """Validate form inputs."""
-        if not self.input_files:
-            messagebox.showerror("Validation Error", "Please select input files")
-            return False
+        errors = []
+        
+        if not self.input_file.get().strip():
+            errors.append("Please select an input file")
         
         if not self.output_folder.get().strip():
-            messagebox.showerror("Validation Error", "Please select output folder")
+            errors.append("Please select output folder")
+        
+        # Validate mandatory patient fields
+        if not self.patient_name.get().strip():
+            errors.append("Patient Name is required (marked with *)")
+        
+        if not self.patient_id.get().strip():
+            errors.append("Patient ID is required (marked with *)")
+        
+        if not self.patient_age.get().strip():
+            errors.append("Patient Age is required (marked with *)")
+        else:
+            # Validate age is a number
+            try:
+                age_val = int(self.patient_age.get())
+                if age_val < 0 or age_val > 150:
+                    errors.append("Age must be between 0 and 150")
+            except ValueError:
+                errors.append("Age must be a valid number")
+        
+        if errors:
+            error_message = "Please fix the following errors:\n\n" + "\n".join(f"• {error}" for error in errors)
+            messagebox.showerror("Validation Error", error_message)
             return False
         
-        # Only Patient ID is mandatory for basic functionality
-        # All other fields are optional and will use defaults if not provided
         return True
     
     def load_image_data(self, image_path):
@@ -881,9 +978,7 @@ For technical support, contact your system administrator.
         self.modality.set("TG")
         self.body_part.set("")
         self.view_position.set("")
-        self.patient_position.set("")
         self.laterality.set("")
-        self.anatomical_region.set("")
         
         # Thermal Parameters
         self.emissivity.set("0.98")
@@ -897,7 +992,7 @@ For technical support, contact your system administrator.
         
         self.status_var.set("✅ Ready to create thermal DICOM files")
         self.clear_file_info()
-        self.clear_input_files()
+        self.clear_input_file()
 
 
 def main():
