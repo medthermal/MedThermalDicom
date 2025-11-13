@@ -11,7 +11,9 @@ from datetime import datetime
 from typing import Optional, Union, Dict, Any, Tuple
 import warnings
 from .utils import generate_organization_uid, validate_organization_uid
-
+from .overlay import DicomOverlay
+from pydicom.dataset import Dataset, FileDataset, DataElement
+from pydicom.pixel_data_handlers.numpy_handler import pack_bits
 
 class MedThermalDicom:
     """
@@ -303,7 +305,32 @@ class MedThermalDicom:
                 'implementation': getattr(self.dataset.file_meta, 'ImplementationClassUID', None) if hasattr(self.dataset, 'file_meta') else None
             }
         }
+    
+    def add_overlay(self, overlay_array: np.ndarray, position: Tuple[int, int],text: str):
+        """
+        Add overlay to the DICOM dataset.
         
+        Args:
+            overlay_array: Overlay array
+            position: Position of the overlay
+        """
+        overlay_obj = DicomOverlay()
+        overlay_image = overlay_obj.draw_annotation(overlay_array, position, text)
+        overlay_image = (overlay_image>0).astype(np.uint8)
+        packed_bytes = pack_bits(overlay_image)
+        rows, cols = overlay_image.shape
+        group = 0x6000
+
+        # Required overlay tags
+        self.dataset.add(DataElement((group , 0x0010), 'US', rows))           # Rows
+        self.dataset.add(DataElement((group , 0x0011), 'US', cols))           # Cols
+        self.dataset.add(DataElement((group , 0x0040), 'CS', 'G'))            # Region/Graphics overlay
+        self.dataset.add(DataElement((group , 0x0050), 'SS', [1, 1]))         # Origin
+        self.dataset.add(DataElement((group , 0x0100), 'US', 1))              # Bits allocated
+        self.dataset.add(DataElement((group , 0x0102), 'US', 0))             # Overlay bit position
+        self.dataset.add(DataElement((group , 0x0015), 'IS', "1"))            # Number of frames
+        self.dataset.add(DataElement((group , 0x3000), 'OW', packed_bytes))   # OverlayData
+
     def set_thermal_parameters(self, params: Dict[str, Any]):
         """
         Set thermal imaging parameters as private DICOM tags.
