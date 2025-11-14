@@ -230,10 +230,10 @@ class MedThermalViewer:
         Returns:
             Plotly Figure with temperature profile
         """
-        if self.thermal_dicom is None or self.thermal_dicom.temperature_data is None:
+        if self.medthermal_dicom is None or self.medthermal_dicom.temperature_data is None:
             raise ValueError("No temperature data available")
         
-        temp_data = self.thermal_dicom.temperature_data
+        temp_data = self.medthermal_dicom.temperature_data
         
         # Create line coordinates
         r1, c1 = start_point
@@ -285,10 +285,10 @@ class MedThermalViewer:
         Returns:
             Plotly Figure with histogram
         """
-        if self.thermal_dicom is None or self.thermal_dicom.temperature_data is None:
+        if self.medthermal_dicom is None or self.medthermal_dicom.temperature_data is None:
             raise ValueError("No temperature data available")
         
-        temp_data = self.thermal_dicom.temperature_data
+        temp_data = self.medthermal_dicom.temperature_data
         
         if roi_mask is not None:
             temperatures = temp_data[roi_mask]
@@ -457,8 +457,8 @@ class MedThermalViewer:
             fig = self.create_interactive_plot()
             
             # Update statistics
-            if self.thermal_dicom and self.thermal_dicom.temperature_data is not None:
-                temp_data = self.thermal_dicom.temperature_data
+            if self.medthermal_dicom and self.medthermal_dicom.temperature_data is not None:
+                temp_data = self.medthermal_dicom.temperature_data
                 stats = self._calculate_image_statistics(temp_data)
                 stats_display = self._format_statistics_display(stats)
             else:
@@ -466,7 +466,7 @@ class MedThermalViewer:
                 stats_display = html.P("No temperature data available")
             
             # Update histogram
-            if self.thermal_dicom and self.thermal_dicom.temperature_data is not None:
+            if self.medthermal_dicom and self.medthermal_dicom.temperature_data is not None:
                 hist_fig = self.create_temperature_histogram()
             else:
                 # Empty figure when no temperature
@@ -479,11 +479,11 @@ class MedThermalViewer:
             [Input('thermal-image', 'hoverData')]
         )
         def update_pixel_info(hover_data):
-            if hover_data is None or self.thermal_dicom is None:
+            if hover_data is None or self.medthermal_dicom is None:
                 return html.P("Hover over the image to see pixel information")
             
             # If no temperature data or RGB image, do not display temperature values
-            if self.thermal_dicom.temperature_data is None:
+            if self.medthermal_dicom.temperature_data is None:
                 point = hover_data['points'][0]
                 x, y = int(point['x']), int(point['y'])
                 return html.Div([
@@ -495,7 +495,7 @@ class MedThermalViewer:
             x, y = int(point['x']), int(point['y'])
             
             # Get temperature at pixel
-            temp = self.thermal_dicom.get_temperature_at_pixel(y, x)
+            temp = self.medthermal_dicom.get_temperature_at_pixel(y, x)
             
             if temp is not None:
                 return html.Div([
@@ -565,12 +565,12 @@ class MedThermalViewer:
             filepath: Output CSV file path
             roi_mask: Optional ROI mask to limit export
         """
-        if self.thermal_dicom is None or self.thermal_dicom.temperature_data is None:
+        if self.medthermal_dicom is None or self.medthermal_dicom.temperature_data is None:
             raise ValueError("No temperature data available")
         
         import pandas as pd
         
-        temp_data = self.thermal_dicom.temperature_data
+        temp_data = self.medthermal_dicom.temperature_data
         
         if roi_mask is not None:
             # Export only ROI data

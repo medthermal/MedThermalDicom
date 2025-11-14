@@ -368,9 +368,10 @@ class EnhancedDicomCreatorGUI:
         ttk.Label(modality_frame, text="Modality:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
         self.modality = tk.StringVar(value="TG")
         modality_combo = ttk.Combobox(modality_frame, textvariable=self.modality, 
-                                     values=["TG", "OT", "XA", "CR", "CT", "MR", "US"], 
-                                     width=10, state="readonly", style='Modern.TCombobox')
+                                     values=["TG"], 
+                                     width=10, state="disabled", style='Modern.TCombobox')
         modality_combo.pack(fill='x')
+        ToolTip(modality_combo, "TG (Thermography) for thermal imaging")
         
         ttk.Label(body_part_frame, text="Body Part Examined:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
         self.body_part = tk.StringVar()
@@ -392,7 +393,8 @@ class EnhancedDicomCreatorGUI:
         ttk.Label(view_pos_frame, text="View Position:", style='Header.TLabel').pack(anchor='w', pady=(0, 5))
         self.view_position = tk.StringVar()
         view_pos_combo = ttk.Combobox(view_pos_frame, textvariable=self.view_position, 
-                                     values=["", "A", "P", "L", "R", "OBL", "LAT", "PA", "AP"], 
+                                     values=["", "A", "P", "L", "R", "OBL", "LAT", "PA", "AP", 
+                                            "FFS", "HFS", "HFP", "FFP", "HFDL", "HFDR", "FFDL", "FFDR"], 
                                      width=10, state="readonly", style='Modern.TCombobox')
         view_pos_combo.pack(fill='x')
         

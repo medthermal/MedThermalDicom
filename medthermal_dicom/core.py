@@ -306,7 +306,7 @@ class MedThermalDicom:
             }
         }
     
-    def add_overlay(self, overlay_array: np.ndarray, position: Tuple[int, int],text: str):
+    def add_overlay(self, mask: np.ndarray):
         """
         Add overlay to the DICOM dataset.
         
@@ -314,9 +314,8 @@ class MedThermalDicom:
             overlay_array: Overlay array
             position: Position of the overlay
         """
-        overlay_obj = DicomOverlay()
-        overlay_image = overlay_obj.draw_annotation(overlay_array, position, text)
-        overlay_image = (overlay_image>0).astype(np.uint8)
+        
+        overlay_image = (mask>0).astype(np.uint8)
         packed_bytes = pack_bits(overlay_image)
         rows, cols = overlay_image.shape
         group = 0x6000
@@ -324,7 +323,7 @@ class MedThermalDicom:
         # Required overlay tags
         self.dataset.add(DataElement((group , 0x0010), 'US', rows))           # Rows
         self.dataset.add(DataElement((group , 0x0011), 'US', cols))           # Cols
-        self.dataset.add(DataElement((group , 0x0040), 'CS', 'G'))            # Region/Graphics overlay
+        self.dataset.add(DataElement((group , 0x0040), 'CS', 'R'))            # Region/Graphics overlay
         self.dataset.add(DataElement((group , 0x0050), 'SS', [1, 1]))         # Origin
         self.dataset.add(DataElement((group , 0x0100), 'US', 1))              # Bits allocated
         self.dataset.add(DataElement((group , 0x0102), 'US', 0))             # Overlay bit position

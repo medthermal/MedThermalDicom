@@ -10,11 +10,7 @@ This example demonstrates how to:
 5. Perform basic thermal image analysis
 """
 
-import sys
 import os
-# Add parent directory to Python path to allow importing medthermal_dicom
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import numpy as np
 import matplotlib.pyplot as plt
 from medthermal_dicom import MedThermalDicom, MedThermalViewer, MedThermalTemperatureConverter, MedThermalCalibrator, MedThermalMetadata

@@ -9,11 +9,7 @@ This example demonstrates how to:
 4. Validate and display UID information
 """
 
-import sys
 import os
-# Add parent directory to Python path to allow importing medthermal_dicom
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import numpy as np
 from medthermal_dicom.core import MedThermalDicom
 

@@ -11,11 +11,6 @@ This example demonstrates a complete clinical workflow for medical thermal imagi
 6. Integration with medical imaging standards
 """
 
-import sys
-import os
-# Add parent directory to Python path to allow importing medthermal_dicom
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, date
@@ -23,7 +18,7 @@ import json
 from typing import Dict, List, Tuple, Optional
 
 from medthermal_dicom.core import MedThermalDicom
-from medthermal_dicom.visualization import ThermalViewer
+from medthermal_dicom.visualization import MedThermalViewer
 from medthermal_dicom.utils import TemperatureConverter, ThermalCalibrator
 from medthermal_dicom.metadata import MedThermalMetadata
 from medthermal_dicom.utils import ThermalImageProcessor, ThermalROIAnalyzer
@@ -860,7 +855,7 @@ def main():
         
         # Step 7: Visualization
         print("\n📊 VISUALIZATION")
-        viewer = ThermalViewer(thermal_dicom)
+        viewer = MedThermalViewer(thermal_dicom)
         
         # Create clinical visualization
         fig = viewer.create_interactive_plot(

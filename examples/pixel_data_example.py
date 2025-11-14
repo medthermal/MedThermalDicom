@@ -5,9 +5,7 @@ Simple example demonstrating pixel data handling for multi-view thermal imaging.
 
 import numpy as np
 import os
-import sys
-# Add parent directory to Python path to allow importing medthermal_dicom when running examples directly
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from medthermal_dicom.core import MedThermalDicom
 from medthermal_dicom.metadata import MedThermalMetadata
 

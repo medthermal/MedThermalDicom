@@ -7,10 +7,8 @@ of the same anatomical region, with proper metadata organization and series mana
 
 import numpy as np
 import os
-import sys
 from datetime import datetime
-# Add parent directory to Python path to allow importing medthermal_dicom when running examples directly
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from medthermal_dicom.core import MedThermalDicom
 from medthermal_dicom.metadata import MedThermalMetadata
 from scipy import io 
