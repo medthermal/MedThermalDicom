@@ -1,5 +1,5 @@
 """
-MedThermal DICOM Package - Professional thermal imaging DICOM library for medical applications
+MedThermal DICOM Package - Thermal imaging DICOM library for medical applications
 
 A comprehensive Python library for creating, manipulating, and visualizing thermal DICOM images
 with support for thermal-specific metadata, temperature calibration, and interactive visualization.

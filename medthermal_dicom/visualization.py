@@ -20,7 +20,7 @@ from PIL import Image
 
 class MedThermalViewer:
     """
-    Professional thermal DICOM viewer with interactive temperature display.
+    Thermal DICOM viewer with interactive temperature display.
     
     Provides comprehensive visualization capabilities including:
     - Interactive temperature hover display

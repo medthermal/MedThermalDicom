@@ -17,7 +17,7 @@ from pydicom.pixel_data_handlers.numpy_handler import pack_bits
 
 class MedThermalDicom:
     """
-    Professional thermal DICOM class for medical thermal imaging applications.
+    Thermal DICOM class for medical thermal imaging applications.
     
     This class provides comprehensive support for creating, manipulating, and managing
     thermal DICOM images with thermal-specific private tags for parameters like

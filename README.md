@@ -1,6 +1,6 @@
 # MedThermal DICOM
 
-** Thermal imaging DICOM library for medical applications**
+**Thermal imaging DICOM library for medical applications**
 
 A comprehensive Python library for creating and managing thermal DICOM images with support for thermal-specific metadata.
 
