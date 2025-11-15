@@ -345,7 +345,7 @@ If you use this code in your research, please cite our work using the following 
 
 ```
 Govindaraju Bharath, Siva Teja Kakileti, Ronak Dedhiya, Geetha Manjunath."MedThermal-DICOM: An Open-Source DICOM-Compliant Framework for Medical Thermal Imaging Enabling Clinical Integration and Research Reproducibility
-" 4th International Conference on Artificial Intelligence over Infrared Images for Medical Applications, 2025.
+" 4th International Conference on Artificial Intelligence over Infrared Images for Medical Applications, 2025 (pp. 190 - 204).
 ```
 
 ## Acknowledgments
