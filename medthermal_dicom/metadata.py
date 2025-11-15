@@ -14,7 +14,7 @@ from .utils import generate_organization_uid
 
 class MedThermalMetadata:
     """
-    Professional thermal DICOM metadata management for medical imaging standards compliance.
+    Thermal DICOM metadata management for medical imaging standards compliance.
     
     Handles thermal-specific metadata, DICOM standard compliance, and interoperability
     with medical imaging systems and PACS.

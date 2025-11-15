@@ -1,6 +1,6 @@
 # MedThermal DICOM
 
-**Professional thermal imaging DICOM library for medical applications**
+**Thermal imaging DICOM library for medical applications**
 
 A comprehensive Python library for creating and managing thermal DICOM images with support for thermal-specific metadata.
 
@@ -11,10 +11,6 @@ A comprehensive Python library for creating and managing thermal DICOM images wi
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Converting FLIR Radiometric Images to CSV](#converting-flir-radiometric-images-to-csv)
-- [Core API Reference](#core-api-reference)
-  - [MedThermalDicom Class](#medthermaldicom-class)
-  - [MedThermalMetadata Class](#medthermalmetadata-class)
-  - [Utility Classes](#utility-classes)
 - [Usage Examples](#usage-examples)
   - [Basic DICOM Creation](#basic-dicom-creation)
   - [Setting Thermal Parameters](#setting-thermal-parameters)
@@ -36,16 +32,16 @@ MedThermal DICOM is designed for researchers, clinicians, and developers working
 ## Features
 
 ### Core Features
-- ✅ Create DICOM files from thermal images (PNG, JPG)
-- ✅ Import temperature data from CSV or numpy arrays
-- ✅ Set comprehensive thermal parameters (emissivity, distance, ambient temperature, etc.)
+- ✅ Create DICOM files from thermal images
+- ✅ Import temperature data from CSV or numpy arrays or JPEG or PNG
+- ✅ Set key thermal acquistion parameters (emissivity, distance, ambient temperature, etc.)
 - ✅ Manage patient, study, and series metadata
 - ✅ Add binary mask overlays for ROI visualization
-- ✅ Export to standard DICOM format
+- ✅ Export fully compliant thermal images to DICOM
 - ✅ Organization UID management for custom UID generation
 
 ### GUI Features
-- 🎨 Simple user interface
+- 🎨 Simple user interface to quickly convert Thermal Image to DICOM
 - 🏥 Comprehensive patient and study information entry
 - 🌡️ Thermal parameter configuration
 - 📊 Organization UID management
@@ -57,6 +53,10 @@ MedThermal DICOM is designed for researchers, clinicians, and developers working
 - Python 3.8 or higher
 - pip package manager
 
+### Install as Package from PyPI
+```bash
+pip install medthermal-dicom
+```
 ### Install from Source
 
 1. Clone or download this repository:
@@ -74,10 +74,6 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-### Install as Package from PyPI
-```bash
-pip install medthermal-dicom
-```
 This installs the `medthermal_dicom` package and makes it available system-wide.
 
 ## Quick Start 
@@ -124,41 +120,7 @@ If you have radiometric JPG images from FLIR thermal cameras, you need to conver
 - Save the CSV file to your desired location
 - Use CSV with MedThermal DICOM as shown in the [Examples](#usage-examples) or [GUI](#gui-application)
 
-```
 
-## Core API Reference
-
-### MedThermalDicom Class
-
-The main class for creating and managing thermal DICOM files.
-
-#### Initialization
-
-```python
-MedThermalDicom(
-    thermal_array: Optional[np.ndarray] = None,
-    temperature_data: Optional[np.ndarray] = None,
-    thermal_params: Optional[Dict[str, Any]] = None,
-    use_legacy_private_creator_encoding: bool = False,
-    organization_uid_prefix: Optional[str] = None,
-    patient_sex: Optional[str] = None,
-    patient_birth_date: Optional[str] = None,
-    study_date: Optional[str] = None
-)
-```
-
-### MedThermalMetadata Class
-
-Thermal DICOM metadata management for medical imaging standards compliance.
-
-### Utility Classes
-
-#### Organization UID Utilities
-
-**Functions:**
-- `generate_organization_uid(org_prefix=None, uid_type="instance")` - Generate organization-specific UID
-- `validate_organization_uid(uid)` - Validate UID format
-- `get_common_organization_uids()` - Get dictionary of common organization UIDs
 
 ## Usage Examples
 
@@ -365,17 +327,9 @@ For GUI only:
 pip install -r gui_requirements.txt
 ```
 
-
-
-
-## Contributing
-
-Contributions are welcome! \
-Please write to medthermaldicom@niramai.com
-
 ## License
 
-This project is licensed under the MIT License. See `LICENSE` file for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) file for details.
 
 ## Support
 
@@ -390,8 +344,8 @@ If you use this code in your research, please cite our work using the following 
 
 
 ```
-Govindaraju, Bharath, Siva Teja Kakileti, Ronak Dedhiya, Geetha Manjunath."MedThermal-DICOM: An Open-Source DICOM-Compliant Framework for Medical Thermal Imaging Enabling Clinical Integration and Research Reproducibility
-" 4th International Conference on Artificial Intelligence over Infrared Images for Medical Applications.
+Govindaraju Bharath, Siva Teja Kakileti, Ronak Dedhiya, Geetha Manjunath."MedThermal-DICOM: An Open-Source DICOM-Compliant Framework for Medical Thermal Imaging Enabling Clinical Integration and Research Reproducibility
+" 4th International Conference on Artificial Intelligence over Infrared Images for Medical Applications, 2025.
 ```
 
 ## Acknowledgments
@@ -402,7 +356,13 @@ We gratefully acknowledge:
 - **[PyDICOM Project](https://pydicom.github.io/)** - For providing excellent Python tools for working with DICOM files, which form the foundation of this library
 - **Medical Thermal Imaging Community** - For advancing research and clinical applications in thermal imaging
 
----
 
-**MedThermal DICOM** - Making thermal medical imaging accessible, standardized, and professional.
+
+
+
+## Contributing
+
+We are volunteers developing MedThermal-DICOM in our free time, and with limited resources we greatly appreciate any contributions—whether bug fixes, new features, or documentation enhancements.\
+For any queries or contributions, please write to medthermaldicom@niramai.com
+
 

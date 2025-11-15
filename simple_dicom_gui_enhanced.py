@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Enhanced Thermal DICOM Creator GUI
-A professional, modern GUI for creating thermal DICOM files.
+A modern GUI for creating thermal DICOM files.
 Designed for thousands of users with enterprise-grade UI/UX.
 """
 
@@ -168,7 +168,7 @@ class EnhancedDicomCreatorGUI:
                                style='Title.TLabel')
         title_label.pack()
         
-        subtitle_label = ttk.Label(title_frame, text="Professional Medical Imaging Software for Research & Clinical Use", 
+        subtitle_label = ttk.Label(title_frame, text="Medical Imaging Software for Research & Clinical Use", 
                                   style='Info.TLabel')
         subtitle_label.pack(pady=(2, 0))
         
