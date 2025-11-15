@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "medthermal-dicom"
-version = "1.0.2"
+version = "1.0.3"
 description = "Professional thermal imaging DICOM library for medical applications"
 readme = "README.md"
 authors = [ { name = "Niramai Health Analytix Pvt Ltd., Bangalore, India", email = "medthermaldicom@niramai.com" } ]
