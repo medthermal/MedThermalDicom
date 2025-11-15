@@ -396,7 +396,11 @@ Govindaraju, Bharath, Siva Teja Kakileti, Ronak Dedhiya, Geetha Manjunath."MedTh
 
 ## Acknowledgments
 
-This library is designed for medical thermal imaging research and clinical applications. It complies with DICOM standards and includes thermal-specific extensions based on best practices in the medical imaging community.
+We gratefully acknowledge:
+
+- **[DICOM Standards Committee](https://www.dicomstandard.org/)** - For establishing and maintaining comprehensive medical imaging standards that enable interoperability across healthcare systems
+- **[PyDICOM Project](https://pydicom.github.io/)** - For providing excellent Python tools for working with DICOM files, which form the foundation of this library
+- **Medical Thermal Imaging Community** - For advancing research and clinical applications in thermal imaging
 
 ---
 
