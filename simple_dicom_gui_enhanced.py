@@ -279,7 +279,7 @@ class EnhancedDicomCreatorGUI:
                  style='Modern.TEntry')
         org_uid_entry.pack(side='left', fill='x', expand=True, padx=(0, 10))
         ToolTip(org_uid_entry, "Optional - If empty, a unique UID will be auto-generated")
-        ttk.Button(uid_controls, text="📋 Common UIDs", command=self.show_common_uids, 
+        ttk.Button(uid_controls, text="📋 Example UIDs", command=self.show_common_uids, 
                   style='Primary.TButton').pack(side='left')
         
         # Study Description

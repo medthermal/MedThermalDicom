@@ -10,6 +10,7 @@ A comprehensive Python library for creating and managing thermal DICOM images wi
 - [Features](#features)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Converting FLIR Radiometric Images to CSV](#converting-flir-radiometric-images-to-csv)
 - [Core API Reference](#core-api-reference)
   - [MedThermalDicom Class](#medthermaldicom-class)
   - [MedThermalMetadata Class](#medthermalmetadata-class)
@@ -96,7 +97,7 @@ thermal_dicom.set_thermal_image(temperature_data,  (30.0, 40.0))
 
 # Add metadata and set body part
 metadata = MedThermalMetadata()
-metadata.set_patient_information(patient_name="DOE^JOHN", patient_id="TH001")
+metadata.set_patient_information(patient_name="TEST^PATIENT", patient_id="TH001")
 metadata.set_study_information(study_description="Thermal Study")
 metadata.set_series_information(series_description="Chest Imaging", body_part="chest")
 metadata.apply_metadata_to_dataset(thermal_dicom.dataset)
@@ -105,6 +106,25 @@ metadata.apply_metadata_to_dataset(thermal_dicom.dataset)
 thermal_dicom.save_dicom("output.dcm")
 ```
 
+## Converting FLIR Radiometric Images to CSV
+
+If you have radiometric JPG images from FLIR thermal cameras, you need to convert them to CSV format before using them with MedThermal DICOM.
+
+### Step 1: Download FLIR Tools
+- Visit [FLIR Tools Download Page](https://www.flir.com/products/flir-tools/)
+- Download and install **FLIR Tools** 
+
+### Step 2: Open Radiometric JPG in FLIR Tools
+- Launch FLIR Tools
+- Open your radiometric JPG file 
+
+### Step 3: Export to CSV
+- Right-click on the thermal image
+- Select **"Export to CSV"** 
+- Save the CSV file to your desired location
+- Use CSV with MedThermal DICOM as shown in the [Examples](#usage-examples) or [GUI](#gui-application)
+
+```
 
 ## Core API Reference
 
@@ -207,7 +227,7 @@ metadata = MedThermalMetadata()
 
 # Set patient information
 metadata.set_patient_information(
-    patient_name="XYZ",
+    patient_name="ANONYMOUS^PATIENT",
     patient_id="TH001",
     patient_birth_date="19850315",
     patient_sex="M",
@@ -218,7 +238,7 @@ metadata.set_patient_information(
 metadata.set_study_information(
     study_description="Breast Thermal Imaging Study",
     accession_number="ACC123456",
-    referring_physician="DR^SMITH^JANE",
+    referring_physician="DR^EXAMPLE^PHYSICIAN",
     procedure_code="breast_thermography"  # SNOMED CT code
 )
 
@@ -257,10 +277,7 @@ temperature_data = np.loadtxt("thermal_data.csv", delimiter=",")
 
 # Create thermal DICOM
 thermal_dicom = MedThermalDicom()
-thermal_dicom.set_thermal_image(
-    temperature_data, 
-    temperature_range=(temperature_data.min(), temperature_data.max())
-)
+thermal_dicom.set_thermal_image(temperature_data)
 
 # Create binary mask for ROI (same shape as thermal data)
 roi_mask = np.zeros_like(temperature_data, dtype=bool)
@@ -271,7 +288,7 @@ thermal_dicom.add_overlay(roi_mask)
 
 # Set patient info and thermal parameters
 thermal_dicom.create_standard_thermal_dicom(
-    patient_name="DOE^JOHN",
+    patient_name="TEST^PATIENT",
     patient_id="THERMAL001",
     study_description="Thermal Imaging with ROI",
     thermal_params={

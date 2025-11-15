@@ -160,8 +160,8 @@ def demonstrate_pixel_data_handling():
         
         # Create standard DICOM
         thermal_dicom.create_standard_thermal_dicom(
-            patient_name="DOE^JANE",
-            patient_id="PIXEL001",
+            patient_name="TEST^PATIENT",
+            patient_id="TEST001",
             study_description="Breast Thermography - Pixel Data Example"
         )
         

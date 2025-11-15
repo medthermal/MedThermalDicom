@@ -143,7 +143,7 @@ class MultiViewThermalImaging:
 			self.metadata.set_study_information(
 				study_description="Breast Thermography Screening",
 				study_id=f"BREAST_{patient_id}",
-				referring_physician="DR^SMITH^THERMAL",
+				referring_physician="DR^EXAMPLE^PHYSICIAN",
 				procedure_code="breast_thermography",
 				study_instance_uid=study_uid
 			)
@@ -294,7 +294,7 @@ class MultiViewThermalImaging:
 			self.metadata.set_study_information(
 				study_description="Whole Body Thermography Screening",
 				study_id=f"WHOLEBODY_{patient_id}",
-				referring_physician="DR^SMITH^THERMAL",
+				referring_physician="DR^EXAMPLE^PHYSICIAN",
 				procedure_code="whole_body_thermography",
 				study_instance_uid=study_uid
 			)
@@ -412,7 +412,7 @@ class MultiViewThermalImaging:
 			self.metadata.set_study_information(
 				study_description=f"{anatomical_region.title()} Thermography",
 				study_id=f"{anatomical_region.upper()}_{patient_id}",
-				referring_physician="DR^SMITH^THERMAL",
+				referring_physician="DR^EXAMPLE^PHYSICIAN",
 				procedure_code="diagnostic_thermography",
 				study_instance_uid=study_uid
 			)
@@ -491,8 +491,8 @@ def main():
     )
     
     # Patient information
-    patient_name = "DOE^JANE^THERMAL"
-    patient_id = "MULTI001"
+    patient_name = "TEST^PATIENT"
+    patient_id = "TEST001"
     
     print("1. Creating Breast Thermography Multi-View Series")
     print("-" * 50)
@@ -562,22 +562,11 @@ def main():
         },
         
     ]
-    
-    # Generate sample thermal data for hand views
-    # breast_thermal_data = {
-    #     'frontal': io.loadmat(r"D:\Bharath\work\kidwai\345\2022001832\1\front.mat")['mappedTemperatureImage'],
-    #     'left_obl': io.loadmat(r"D:\Bharath\work\kidwai\345\2022001832\1\left_obl.mat")['mappedTemperatureImage'],
-    #     'right_obl': io.loadmat(r"D:\Bharath\work\kidwai\345\2022001832\1\right_obl.mat")['mappedTemperatureImage']
-    # }
-    # breast_thermal_data = {
-    #     'frontal': np.array(Image.open(r"D:\Bharath\work\therm_files\HCG\148329\front.jpg")),
-    #     'left_obl': np.array(Image.open(r"D:\Bharath\work\therm_files\HCG\148329\left_obl.jpg")),
-    #     'right_obl': np.array(Image.open(r"D:\Bharath\work\therm_files\HCG\148329\right_obl.jpg"))
-    # }
+
     breast_thermal_data = {
-        'frontal': np.loadtxt(r"D:\Bharath\work\therm_files\temp_csv\temp2.csv",delimiter=","),
-        'left_obl': np.loadtxt(r"D:\Bharath\work\therm_files\temp_csv\temperature1.csv",delimiter=","),
-        'right_obl': io.loadmat(r"D:\Bharath\work\kidwai\345\2022001832\1\right_obl.mat")['mappedTemperatureImage']
+        'frontal': np.loadtxt(r"temp2.csv",delimiter=","),
+        'left_obl': np.loadtxt(r"temperature1.csv",delimiter=","),
+        'right_obl': io.loadmat(r"right_obl.mat")['mappedTemperatureImage']
     }
     # Create custom hand thermography views
     # breast_files = multi_view.create_custom_multi_view_series(

@@ -812,7 +812,7 @@ def main():
         # Step 2: Patient Registration
         print("\n👤 PATIENT REGISTRATION")
         patient_info = {
-            'patient_name': 'DOE^JANE^MEDICAL',
+            'patient_name': 'TEST^PATIENT',
             'patient_id': 'THERM_001',
             'patient_birth_date': '19750815',
             'patient_sex': 'F',
@@ -828,8 +828,8 @@ def main():
         study_info = {
             'study_description': 'Breast Thermal Screening Study',
             'clinical_indication': 'Routine breast cancer screening',
-            'referring_physician': 'DR^SMITH^ROBERT',
-            'technologist': 'TECH^JONES^MARY',
+            'referring_physician': 'DR^EXAMPLE^PHYSICIAN',
+            'technologist': 'TECH^SAMPLE^TECHNICIAN',
             'body_parts_examined': ['breast'],
             'environmental_conditions': {
                 'room_temperature': 22.0,

@@ -24,10 +24,10 @@ if mask is None:
 
 # Create thermal DICOM with the image
 thermal_dicom = MedThermalDicom()
-thermal_dicom.set_thermal_image(img, temperature_range=(img.min(), img.max()))
+thermal_dicom.set_thermal_image(img)
 thermal_dicom.create_standard_thermal_dicom(
-    patient_name="DOE^JOHN",
-    patient_id="THERMAL001",
+    patient_name="TEST^PATIENT",
+    patient_id="TEST001",
     study_description="Thermal Imaging Study",
     thermal_params={
         'emissivity': 0.98,

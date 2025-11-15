@@ -82,8 +82,8 @@ def basic_thermal_dicom_creation():
     
     # Create standard medical thermal DICOM
     medthermal_dicom.create_standard_thermal_dicom(
-        patient_name="DOE^JOHN^",
-        patient_id="THERM001",
+        patient_name="TEST^PATIENT^A",
+        patient_id="TEST001",
         study_description="Breast Thermal Imaging Study"
     )
     
@@ -103,8 +103,8 @@ def demonstrate_metadata_handling():
     
     # Set patient information
     metadata.set_patient_information(
-        patient_name="DOE^JOHN^MEDICAL",
-        patient_id="THERM001",
+        patient_name="TEST^PATIENT^B^MEDICAL",
+        patient_id="TEST001",
         patient_birth_date="19850315",
         patient_sex="M",
         patient_age="038Y"
@@ -114,7 +114,7 @@ def demonstrate_metadata_handling():
     metadata.set_study_information(
         study_description="Medical Thermal Imaging - Breast Screening",
         accession_number="ACC123456",
-        referring_physician="DR^SMITH^JANE",
+        referring_physician="DR^EXAMPLE^PHYSICIAN",
         procedure_code="breast_thermography"
     )
     

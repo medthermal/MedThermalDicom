@@ -10,9 +10,6 @@ import time
 import random
 from typing import Tuple
 from pydicom.uid import generate_uid
-import time
-import random
-from pydicom.uid import generate_uid
 
 
 class MedThermalTemperatureConverter:
@@ -567,12 +564,9 @@ def _get_uid_type_component(uid_type: str) -> str:
 
 def get_common_organization_uids() -> Dict[str, str]:
     return {
-        "example_medical_center": "1.2.826.0.1.3680043.8.498",
-        "example_hospital": "1.2.826.0.1.3680043.8.499",
-        "example_clinic": "1.2.826.0.1.3680043.8.500",
-        "example_research_institute": "1.2.826.0.1.3680043.8.501",
-        "example_university": "1.2.826.0.1.3680043.8.502",
-        "example_manufacturer": "1.2.826.0.1.3680043.8.503",
+        "example_1": "1.2.826.0.1.3680043.8.498",
+        "example_2": "1.2.826.0.1.3680043.8.499",
+        "example_3": "1.2.826.0.1.3680043.8.500",
     }
 
 
