@@ -5,9 +5,9 @@ A comprehensive Python library for creating, manipulating, and visualizing therm
 with support for thermal-specific metadata, temperature calibration, and interactive visualization.
 """
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 __author__ = "MedThermal DICOM Contributors"
-__email__ = "support@medthermal-dicom.org"
+__email__ = "medthermaldicom@niramai.com"
 
 from .core import MedThermalDicom
 from .visualization import MedThermalViewer
